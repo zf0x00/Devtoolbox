@@ -1,5 +1,6 @@
 /// <reference types="chrome" />
 import "~/assets/tailwind.css";
+import TurndownService from 'turndown';
 
 export default defineContentScript({
   matches: ['*://www.npmjs.com/*'],
@@ -72,5 +73,124 @@ export default defineContentScript({
       childList: true,
       subtree: true,
     });
+
+    // Add UI elements after a short delay to ensure DOM is ready
+    setTimeout(() => {
+      const readmeDiv = document.getElementById('readme');
+      if (readmeDiv) {
+      // Make readme div relative for positioning
+      readmeDiv.style.position = 'relative';
+
+      // Create container
+      const container = document.createElement('div');
+      container.style.position = 'absolute';
+      container.style.top = '0';
+      container.style.right = '0';
+      container.style.zIndex = '10';
+      container.style.display = 'flex';
+      container.style.gap = '10px';
+      container.style.alignItems = 'center';
+
+      // Copy Markdown button
+      const copyBtn = document.createElement('button');
+      copyBtn.style.padding = '11px 16px';
+      copyBtn.style.backgroundColor = '#000';
+      copyBtn.style.color = 'white';
+      copyBtn.style.border = 'none';
+      copyBtn.style.borderRadius = '4px';
+      copyBtn.style.cursor = 'pointer';
+      copyBtn.style.display = 'flex';
+      copyBtn.style.alignItems = 'center';
+      copyBtn.style.gap = '8px';
+
+      // Create SVG icon
+      const iconSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      iconSvg.setAttribute('width', '16');
+      iconSvg.setAttribute('height', '16');
+      iconSvg.setAttribute('viewBox', '0 0 24 24');
+      iconSvg.setAttribute('fill', 'currentColor');
+      iconSvg.innerHTML = '<path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>'; // Copy icon
+
+      const textSpan = document.createElement('span');
+      textSpan.textContent = 'Copy Markdown';
+
+      copyBtn.appendChild(iconSvg);
+      copyBtn.appendChild(textSpan);
+
+      copyBtn.onclick = async () => {
+        let text = '';
+        try {
+          // Clone the readme div and remove our UI elements
+          const clonedReadme = readmeDiv.cloneNode(true) as HTMLElement;
+          const container = clonedReadme.querySelector('div[style*="position: absolute"]');
+          if (container) {
+            container.remove();
+          }
+          // Use Turndown to convert HTML to Markdown
+          const turndown = new TurndownService();
+          text = turndown.turndown(clonedReadme.innerHTML);
+        } catch (e) {
+          console.error('Failed to convert to markdown:', e);
+          // Fallback to textContent
+          text = readmeDiv.textContent || '';
+        }
+        try {
+          await navigator.clipboard.writeText(text);
+          // Change icon to checkmark
+          iconSvg.innerHTML = '<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>';
+          textSpan.textContent = 'Copy Markdown';
+          copyBtn.style.backgroundColor = '#28a745';
+          setTimeout(() => {
+            // Reset after 2 seconds
+            iconSvg.innerHTML = '<path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>';
+            textSpan.textContent = 'Copy Markdown';
+            copyBtn.style.backgroundColor = '#000';
+          }, 2000);
+        } catch (err) {
+          console.error('Failed to copy:', err);
+          // Change to error icon
+          iconSvg.innerHTML = '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="none"/><path d="M13.49 5.48c-.21-.21-.52-.28-.82-.2-.3.08-.54.31-.66.61l-1.5 3.49c-.08.18-.06.38.05.55.11.17.28.3.47.37l3.49 1.5c.3.13.63.06.82-.2.21-.21.28-.52.2-.82l-1.5-3.49c-.13-.3-.39-.54-.61-.66zM12 15c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z" fill="none"/><circle cx="12" cy="7" r="1.5" fill="none"/>';
+          textSpan.textContent = 'Error';
+          copyBtn.style.backgroundColor = '#dc3545';
+          setTimeout(() => {
+            iconSvg.innerHTML = '<path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>';
+            textSpan.textContent = 'Copy Markdown';
+            copyBtn.style.backgroundColor = '#000';
+          }, 2000);
+        }
+      };
+
+      // Dropdown
+      const select = document.createElement('select');
+      select.style.padding = '8px 16px';
+      select.style.border = '1px solid #ccc';
+      select.style.borderRadius = '4px';
+      select.style.cursor = 'pointer';
+
+      const options = [
+        { text: 'Open in ChatGPT', url: 'https://chat.openai.com/' },
+        { text: 'Open in Claude', url: 'https://claude.ai/' },
+        { text: 'Open in GitHub Copilot', url: 'https://github.com/features/copilot' },
+      ];
+
+      options.forEach(opt => {
+        const optionEl = document.createElement('option');
+        optionEl.textContent = opt.text;
+        optionEl.value = opt.url;
+        select.appendChild(optionEl);
+      });
+
+      select.onchange = () => {
+        if (select.value) {
+          window.open(select.value, '_blank');
+          select.value = ''; // Reset
+        }
+      };
+
+      container.appendChild(copyBtn);
+      container.appendChild(select);
+      readmeDiv.appendChild(container);
+      }
+    }, 1000);
   },
 });
