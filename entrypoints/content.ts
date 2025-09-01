@@ -35,11 +35,7 @@ export default defineContentScript({
         // Replace "npm i" with selected command
         chrome.storage.sync.get(['packageManager'], (result) => {
           const pm = result.packageManager || 'npm';
-<<<<<<< HEAD
           const regex = /npm (?=\s+i)/g;
-=======
-          const regex = /npm(?=\s+i)/g;
->>>>>>> 6fd3f79 (all ok)
           newText = text.replace(regex, commandMap[pm]);
           if (newText !== text) {
             node.textContent = newText;
@@ -209,19 +205,11 @@ export default defineContentScript({
       const currentUrl = encodeURIComponent(window.location.href);
       const options = [
         { icon: chatgptIcon, text: 'ChatGPT', url: `https://chatgpt.com/?hints=search&q=Read+${currentUrl}` },
-<<<<<<< HEAD
         { icon: claudeIcon, text: 'Claude', url: `https://claude.ai/new?q=Read+${currentUrl}+I+want+to+ask+questions+about+it.` },
         { icon: perplexityIcon, text: 'Perplexity', url: `https://perplexity.ai/?q=Read+${currentUrl}+I+want+to+ask+questions+about+it.` },
 
         // { icon: mistralIcon, text: 'Mistral', url: `https://mistral.ai/?q=Read+${currentUrl}` },
         // { icon: geminiIcon, text: 'Gemini', url: `https://gemini.google.com/app/new?q=Read+${currentUrl}` },
-=======
-        { icon: claudeIcon, text: 'Claude', url: `https://claude.ai/?q=Read+${currentUrl}` },
-        { icon: perplexityIcon, text: 'Perplexity', url: `https://perplexity.ai/?q=Read+${currentUrl}` },
-
-        // { icon: mistralIcon, text: 'Mistral', url: `https://mistral.ai/?q=Read+${currentUrl}` },
-        // { icon: geminiIcon, text: 'Gemini', url: `https://gemini.ai/?q=Read+${currentUrl}` },
->>>>>>> 6fd3f79 (all ok)
         // { icon: deepseekIcon, text: 'DeepSeek', url: `https://deepseek.com/?q=Read+${currentUrl}` },
         // { icon: githubIcon, text: 'GitHub', url: `https://github.com/search?q=${encodeURIComponent(window.location.pathname.split('/')[2] || '')}` },
       ];
