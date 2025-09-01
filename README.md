@@ -33,6 +33,7 @@ With just a click, you can:
    ```bash
    git clone https://github.com/zf0x00/devtoolbox.git
    cd devtoolbox
+   pnpm i
    pnpm run zip //for zip format
    ```
 2. Open Chrome and go to:
