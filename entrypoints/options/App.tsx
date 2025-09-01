@@ -34,7 +34,7 @@ function App() {
     <div className="h-screen w-screen bg-gray-100 flex flex-col">
       <div className="flex justify-end p-4 gap-4">
         <button
-          onClick={() => window.open('https://github.com', '_blank')}
+          onClick={() => window.open('https://github.com/zf0x00/Devtoolbox', '_blank')}
           className="text-white hover:text-green-100 text-lg font-medium bg-gray-200 rounded-lg px-4 py-2"
         >
           Start on GitHub
