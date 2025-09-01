@@ -1,6 +1,14 @@
 /// <reference types="chrome" />
 import "~/assets/tailwind.css";
 import TurndownService from 'turndown';
+import deepseekIcon from "~/assets/deepseek-color.svg";
+import mistralIcon from "~/assets/mistral-color.svg";
+import geminiIcon from "~/assets/gemini-color.svg";
+import chatgptIcon from "~/assets/openai.svg";
+import claudeIcon from "~/assets/claude-color.svg";
+import githubIcon from "~/assets/github-color.svg";
+import externalLinkIcon from "~/assets/external-link.svg";
+import perplexityIcon from "~/assets/perplexity-color.svg";
 
 export default defineContentScript({
   matches: ['*://www.npmjs.com/*'],
@@ -27,8 +35,8 @@ export default defineContentScript({
         // Replace "npm i" with selected command
         chrome.storage.sync.get(['packageManager'], (result) => {
           const pm = result.packageManager || 'npm';
-          const regex = /npm\s+i/g;
-          newText = text.replace(regex, `${commandMap[pm]} ${installMap[pm]}`);
+          const regex = /npm(?=\s+i)/g;
+          newText = text.replace(regex, commandMap[pm]);
           if (newText !== text) {
             node.textContent = newText;
           }
@@ -39,9 +47,9 @@ export default defineContentScript({
           // Handle code blocks
           chrome.storage.sync.get(['packageManager'], (result) => {
             const pm = result.packageManager || 'npm';
-            const regex = /npm\s+i/g;
+            const regex = /npm(?=\s+i)/g;
             const text = element.textContent || '';
-            const newText = text.replace(regex, `${commandMap[pm]} ${installMap[pm]}`);
+            const newText = text.replace(regex, commandMap[pm]);
             if (newText !== text) {
               element.textContent = newText;
             }
@@ -160,35 +168,97 @@ export default defineContentScript({
         }
       };
 
-      // Dropdown
-      const select = document.createElement('select');
-      select.style.padding = '8px 16px';
-      select.style.border = '1px solid #ccc';
-      select.style.borderRadius = '4px';
-      select.style.cursor = 'pointer';
+      // Custom Dropdown
+      const dropdownContainer = document.createElement('div');
+      dropdownContainer.style.position = 'relative';
+      dropdownContainer.style.display = 'inline-block';
 
+      const dropdownBtn = document.createElement('button');
+      dropdownBtn.textContent = 'Open in';
+      dropdownBtn.style.padding = '11px 16px';
+      dropdownBtn.style.border = '1px solid #ccc';
+      dropdownBtn.style.borderRadius = '4px';
+      dropdownBtn.style.cursor = 'pointer';
+      dropdownBtn.style.backgroundColor = '#fff';
+      dropdownBtn.style.display = 'flex';
+      dropdownBtn.style.alignItems = 'center';
+      dropdownBtn.style.gap = '8px';
+
+      const arrowImg = document.createElement('img');
+      arrowImg.src = externalLinkIcon;
+      arrowImg.style.width = '12px';
+      arrowImg.style.height = '12px';
+      dropdownBtn.appendChild(arrowImg);
+
+      const dropdownList = document.createElement('div');
+      dropdownList.style.display = 'none';
+      dropdownList.style.position = 'absolute';
+      dropdownList.style.top = '100%';
+      dropdownList.style.left = '0';
+      dropdownList.style.backgroundColor = '#fff';
+      dropdownList.style.border = '1px solid #ccc';
+      dropdownList.style.borderRadius = '4px';
+      dropdownList.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+      dropdownList.style.zIndex = '1000';
+      dropdownList.style.minWidth = '200px';
+
+      const currentUrl = encodeURIComponent(window.location.href);
       const options = [
-        { text: 'Open in ChatGPT', url: 'https://chat.openai.com/' },
-        { text: 'Open in Claude', url: 'https://claude.ai/' },
-        { text: 'Open in GitHub Copilot', url: 'https://github.com/features/copilot' },
+        { icon: chatgptIcon, text: 'ChatGPT', url: `https://chatgpt.com/?hints=search&q=Read+${currentUrl}` },
+        { icon: claudeIcon, text: 'Claude', url: `https://claude.ai/?q=Read+${currentUrl}` },
+        { icon: perplexityIcon, text: 'Perplexity', url: `https://perplexity.ai/?q=Read+${currentUrl}` },
+
+        // { icon: mistralIcon, text: 'Mistral', url: `https://mistral.ai/?q=Read+${currentUrl}` },
+        // { icon: geminiIcon, text: 'Gemini', url: `https://gemini.ai/?q=Read+${currentUrl}` },
+        // { icon: deepseekIcon, text: 'DeepSeek', url: `https://deepseek.com/?q=Read+${currentUrl}` },
+        // { icon: githubIcon, text: 'GitHub', url: `https://github.com/search?q=${encodeURIComponent(window.location.pathname.split('/')[2] || '')}` },
       ];
 
       options.forEach(opt => {
-        const optionEl = document.createElement('option');
-        optionEl.textContent = opt.text;
-        optionEl.value = opt.url;
-        select.appendChild(optionEl);
+        const item = document.createElement('div');
+        item.style.padding = '8px 16px';
+        item.style.cursor = 'pointer';
+        item.style.display = 'flex';
+        item.style.alignItems = 'center';
+        item.style.gap = '8px';
+
+        const iconImg = document.createElement('img');
+        iconImg.src = opt.icon;
+        iconImg.alt = opt.text;
+        iconImg.style.width = '16px';
+        iconImg.style.height = '16px';
+
+        const textSpan = document.createElement('span');
+        textSpan.textContent = opt.text;
+
+        const arrowImg = document.createElement('img');
+        arrowImg.src = externalLinkIcon;
+        arrowImg.alt = 'Open';
+        arrowImg.style.width = '12px';
+        arrowImg.style.height = '12px';
+
+        item.appendChild(iconImg);
+        item.appendChild(textSpan);
+        item.appendChild(arrowImg);
+
+        item.onmouseover = () => item.style.backgroundColor = '#f0f0f0';
+        item.onmouseout = () => item.style.backgroundColor = '#fff';
+        item.onclick = () => {
+          window.open(opt.url, '_blank');
+          dropdownList.style.display = 'none';
+        };
+        dropdownList.appendChild(item);
       });
 
-      select.onchange = () => {
-        if (select.value) {
-          window.open(select.value, '_blank');
-          select.value = ''; // Reset
-        }
+      dropdownBtn.onclick = () => {
+        dropdownList.style.display = dropdownList.style.display === 'none' ? 'block' : 'none';
       };
 
+      dropdownContainer.appendChild(dropdownBtn);
+      dropdownContainer.appendChild(dropdownList);
+
       container.appendChild(copyBtn);
-      container.appendChild(select);
+      container.appendChild(dropdownContainer);
       readmeDiv.appendChild(container);
       }
     }, 1000);

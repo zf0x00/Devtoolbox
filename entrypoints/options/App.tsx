@@ -32,7 +32,14 @@ function App() {
 
   return (
     <div className="h-screen w-screen bg-gray-100 flex flex-col">
-      <div className="flex justify-end p-4">
+      <div className="flex justify-end p-4 gap-4">
+        <button
+          onClick={() => window.open('https://github.com', '_blank')}
+          className="text-white hover:text-green-100 text-lg font-medium bg-gray-200 rounded-lg px-4 py-2"
+        >
+          Start on GitHub
+        </button>
+
         <button
           onClick={() => window.close()}
           className="text-red-600 hover:text-white text-2xl font-bold bg-red-200 rounded-full p-2"
