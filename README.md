@@ -68,5 +68,3 @@ Pull requests are welcome! For major changes, please open an issue first to disc
 [MIT](LICENSE)
 
 ---
-
-👉 Do you want me to also create a **short tagline + badges (npm, Chrome Web Store, license, stars)** at the top, so your README looks more professional like popular open-source projects?
